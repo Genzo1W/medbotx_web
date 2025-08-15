@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { 
   Calendar, 
   Users, 
@@ -13,6 +14,7 @@ import { useAuth } from '../contexts/AuthContext'
 
 const Dashboard = () => {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [stats, setStats] = useState({
     totalAppointments: 0,
     todayAppointments: 0,
@@ -114,7 +116,10 @@ const Dashboard = () => {
             </p>
           )}
         </div>
-        <button className="btn-primary flex items-center space-x-2">
+        <button 
+          onClick={() => navigate('/appointments')}
+          className="btn-primary flex items-center space-x-2"
+        >
           <Plus className="w-4 h-4" />
           <span>New Appointment</span>
         </button>
@@ -177,7 +182,10 @@ const Dashboard = () => {
         <div className="card">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Recent Appointments</h3>
-            <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
+            <button 
+              onClick={() => navigate('/appointments')}
+              className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+            >
               View All
             </button>
           </div>
@@ -208,7 +216,10 @@ const Dashboard = () => {
         <div className="card">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Upcoming Today</h3>
-            <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
+            <button 
+              onClick={() => navigate('/calendar')}
+              className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+            >
               View Calendar
             </button>
           </div>
@@ -238,19 +249,31 @@ const Dashboard = () => {
       <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <button className="flex flex-col items-center p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg hover:from-primary-100 hover:to-primary-200 transition-all duration-200">
+          <button 
+            onClick={() => navigate('/patients')}
+            className="flex flex-col items-center p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg hover:from-primary-100 hover:to-primary-200 transition-all duration-200"
+          >
             <Plus className="w-8 h-8 text-primary-600 mb-2" />
             <span className="text-sm font-medium text-primary-700">New Patient</span>
           </button>
-          <button className="flex flex-col items-center p-4 bg-gradient-to-br from-medical-50 to-medical-100 rounded-lg hover:from-medical-100 hover:to-medical-200 transition-all duration-200">
+          <button 
+            onClick={() => navigate('/calendar')}
+            className="flex flex-col items-center p-4 bg-gradient-to-br from-medical-50 to-medical-100 rounded-lg hover:from-medical-100 hover:to-medical-200 transition-all duration-200"
+          >
             <Calendar className="w-8 h-8 text-medical-600 mb-2" />
             <span className="text-sm font-medium text-medical-700">Schedule</span>
           </button>
-          <button className="flex flex-col items-center p-4 bg-gradient-to-br from-accent-50 to-accent-100 rounded-lg hover:from-accent-100 hover:to-accent-200 transition-all duration-200">
+          <button 
+            onClick={() => navigate('/patients')}
+            className="flex flex-col items-center p-4 bg-gradient-to-br from-accent-50 to-accent-100 rounded-lg hover:from-accent-100 hover:to-accent-200 transition-all duration-200"
+          >
             <Users className="w-8 h-8 text-accent-600 mb-2" />
             <span className="text-sm font-medium text-accent-700">Patients</span>
           </button>
-          <button className="flex flex-col items-center p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg hover:from-gray-100 hover:to-gray-200 transition-all duration-200">
+          <button 
+            onClick={() => navigate('/settings')}
+            className="flex flex-col items-center p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg hover:from-gray-100 hover:to-gray-200 transition-all duration-200"
+          >
             <TrendingUp className="w-8 h-8 text-gray-600 mb-2" />
             <span className="text-sm font-medium text-gray-700">Reports</span>
           </button>

@@ -17,7 +17,11 @@ const Calendar = () => {
   const [showAddModal, setShowAddModal] = useState(false)
 
   useEffect(() => {
-    // Simulate data loading
+    // Generate mock appointments for current month and next month
+    const today = new Date()
+    const currentYear = today.getFullYear()
+    const currentMonth = today.getMonth()
+    
     const mockAppointments = [
       {
         id: 1,
@@ -26,7 +30,7 @@ const Calendar = () => {
         duration: 30,
         type: 'Consultation',
         status: 'confirmed',
-        date: '2024-01-15'
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
       },
       {
         id: 2,
@@ -35,7 +39,61 @@ const Calendar = () => {
         duration: 45,
         type: 'Follow-up',
         status: 'pending',
-        date: '2024-01-15'
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(today.getDate() + 1).padStart(2, '0')}`
+      },
+      {
+        id: 3,
+        patientName: 'Emily Davis',
+        time: '14:00',
+        duration: 60,
+        type: 'Check-up',
+        status: 'confirmed',
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(today.getDate() + 2).padStart(2, '0')}`
+      },
+      {
+        id: 4,
+        patientName: 'Robert Wilson',
+        time: '11:15',
+        duration: 30,
+        type: 'Emergency',
+        status: 'confirmed',
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(today.getDate() + 3).padStart(2, '0')}`
+      },
+      {
+        id: 5,
+        patientName: 'Lisa Brown',
+        time: '16:30',
+        duration: 45,
+        type: 'Consultation',
+        status: 'pending',
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(today.getDate() + 5).padStart(2, '0')}`
+      },
+      {
+        id: 6,
+        patientName: 'David Thompson',
+        time: '08:45',
+        duration: 30,
+        type: 'Follow-up',
+        status: 'completed',
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(today.getDate() - 1).padStart(2, '0')}`
+      },
+      {
+        id: 7,
+        patientName: 'Maria Garcia',
+        time: '13:20',
+        duration: 60,
+        type: 'Check-up',
+        status: 'confirmed',
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(today.getDate() + 7).padStart(2, '0')}`
+      },
+      {
+        id: 8,
+        patientName: 'James Miller',
+        time: '15:45',
+        duration: 30,
+        type: 'Consultation',
+        status: 'pending',
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(today.getDate() + 10).padStart(2, '0')}`
       }
     ]
     setAppointments(mockAppointments)
@@ -72,7 +130,7 @@ const Calendar = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'confirmed': return 'bg-medical-100 text-medical-800'
+      case 'confirmed': return 'bg-green-100 text-green-800'
       case 'pending': return 'bg-yellow-100 text-yellow-800'
       case 'completed': return 'bg-blue-100 text-blue-800'
       case 'cancelled': return 'bg-red-100 text-red-800'
@@ -98,6 +156,7 @@ const Calendar = () => {
   }
 
   const isToday = (date) => {
+    if (!date) return false
     const today = new Date()
     return date.getDate() === today.getDate() &&
            date.getMonth() === today.getMonth() &&
@@ -105,8 +164,8 @@ const Calendar = () => {
   }
 
   const isSelected = (date) => {
-    return date && selectedDate &&
-           date.getDate() === selectedDate.getDate() &&
+    if (!date || !selectedDate) return false
+    return date.getDate() === selectedDate.getDate() &&
            date.getMonth() === selectedDate.getMonth() &&
            date.getFullYear() === selectedDate.getFullYear()
   }
@@ -156,7 +215,11 @@ const Calendar = () => {
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <button
-                  onClick={() => setCurrentDate(new Date())}
+                  onClick={() => {
+                    const today = new Date()
+                    setCurrentDate(today)
+                    setSelectedDate(today)
+                  }}
                   className="btn-secondary text-sm"
                 >
                   Today
@@ -297,6 +360,12 @@ const Calendar = () => {
                   {appointments.filter(apt => apt.status === 'pending').length}
                 </span>
               </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Confirmed</span>
+                <span className="font-semibold text-green-600">
+                  {appointments.filter(apt => apt.status === 'confirmed').length}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -326,6 +395,7 @@ const Calendar = () => {
               <input
                 type="date"
                 className="input-field"
+                defaultValue={selectedDate.toISOString().split('T')[0]}
               />
               <input
                 type="time"

@@ -10,7 +10,8 @@ import {
   Calendar,
   Edit,
   Trash2,
-  Eye
+  Eye,
+  X
 } from 'lucide-react'
 
 const Patients = () => {
@@ -18,6 +19,10 @@ const Patients = () => {
   const [filteredPatients, setFilteredPatients] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showViewModal, setShowViewModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [selectedPatient, setSelectedPatient] = useState(null)
+  const [editForm, setEditForm] = useState({})
 
   useEffect(() => {
     // Simulate data loading
@@ -90,6 +95,39 @@ const Patients = () => {
       case 'Male': return 'bg-blue-100 text-blue-800'
       default: return 'bg-gray-100 text-gray-800'
     }
+  }
+
+  const handleViewPatient = (patient) => {
+    setSelectedPatient(patient)
+    setShowViewModal(true)
+  }
+
+  const handleEditPatient = (patient) => {
+    setSelectedPatient(patient)
+    setEditForm(patient)
+    setShowEditModal(true)
+  }
+
+  const handleUpdatePatient = () => {
+    setPatients(patients.map(patient => 
+      patient.id === selectedPatient.id ? editForm : patient
+    ))
+    setShowEditModal(false)
+    setSelectedPatient(null)
+    setEditForm({})
+  }
+
+  const handleDeletePatient = (patientId) => {
+    if (window.confirm('Are you sure you want to delete this patient?')) {
+      setPatients(patients.filter(patient => patient.id !== patientId))
+    }
+  }
+
+  const handleInputChange = (field, value) => {
+    setEditForm(prev => ({
+      ...prev,
+      [field]: value
+    }))
   }
 
   return (
@@ -186,21 +224,222 @@ const Patients = () => {
             </div>
 
             <div className="flex items-center space-x-2">
-              <button className="flex-1 btn-secondary flex items-center justify-center space-x-2 py-2">
+              <button 
+                onClick={() => handleViewPatient(patient)}
+                className="flex-1 btn-secondary flex items-center justify-center space-x-2 py-2"
+              >
                 <Eye className="w-4 h-4" />
                 <span>View</span>
               </button>
-              <button className="flex-1 btn-primary flex items-center justify-center space-x-2 py-2">
+              <button 
+                onClick={() => handleEditPatient(patient)}
+                className="flex-1 btn-primary flex items-center justify-center space-x-2 py-2"
+              >
                 <Edit className="w-4 h-4" />
                 <span>Edit</span>
               </button>
-              <button className="p-2 text-gray-400 hover:text-red-600 transition-colors">
+              <button 
+                onClick={() => handleDeletePatient(patient.id)}
+                className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+              >
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* View Patient Modal */}
+      {showViewModal && selectedPatient && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-gray-900">Patient Details</h3>
+              <button 
+                onClick={() => setShowViewModal(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <div className="flex items-center space-x-4 mb-6">
+                  <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
+                    <User className="w-8 h-8 text-primary-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-semibold text-gray-900">{selectedPatient.name}</h4>
+                    <p className="text-gray-500">Patient ID: {selectedPatient.id}</p>
+                    <span className={`status-badge ${getStatusColor(selectedPatient.status)}`}>
+                      {selectedPatient.status}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Email</label>
+                    <p className="text-gray-900">{selectedPatient.email}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Phone</label>
+                    <p className="text-gray-900">{selectedPatient.phone}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Address</label>
+                    <p className="text-gray-900">{selectedPatient.address}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Age & Gender</label>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <span className={`status-badge ${getGenderColor(selectedPatient.gender)}`}>
+                        {selectedPatient.gender}
+                      </span>
+                      <span className="text-gray-900">{selectedPatient.age} years old</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Last Visit</label>
+                    <p className="text-gray-900">{selectedPatient.lastVisit}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Next Appointment</label>
+                    <p className="text-primary-600 font-medium">{selectedPatient.nextAppointment}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Medical History</label>
+                    <p className="text-gray-900">{selectedPatient.medicalHistory}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex space-x-3 mt-6">
+              <button 
+                onClick={() => {
+                  setShowViewModal(false)
+                  handleEditPatient(selectedPatient)
+                }}
+                className="btn-primary flex-1"
+              >
+                Edit Patient
+              </button>
+              <button 
+                onClick={() => setShowViewModal(false)}
+                className="btn-secondary flex-1"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Patient Modal */}
+      {showEditModal && selectedPatient && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Edit Patient</h3>
+              <button 
+                onClick={() => setShowEditModal(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Full Name"
+                value={editForm.name || ''}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                className="input-field"
+              />
+              <input
+                type="email"
+                placeholder="Email Address"
+                value={editForm.email || ''}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                className="input-field"
+              />
+              <input
+                type="tel"
+                placeholder="Phone Number"
+                value={editForm.phone || ''}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                className="input-field"
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="number"
+                  placeholder="Age"
+                  value={editForm.age || ''}
+                  onChange={(e) => handleInputChange('age', e.target.value)}
+                  className="input-field"
+                />
+                <select 
+                  value={editForm.gender || ''}
+                  onChange={(e) => handleInputChange('gender', e.target.value)}
+                  className="input-field"
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <textarea
+                placeholder="Address"
+                rows="2"
+                value={editForm.address || ''}
+                onChange={(e) => handleInputChange('address', e.target.value)}
+                className="input-field"
+              />
+              <textarea
+                placeholder="Medical History"
+                rows="3"
+                value={editForm.medicalHistory || ''}
+                onChange={(e) => handleInputChange('medicalHistory', e.target.value)}
+                className="input-field"
+              />
+              <select 
+                value={editForm.status || ''}
+                onChange={(e) => handleInputChange('status', e.target.value)}
+                className="input-field"
+              >
+                <option value="">Select Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="archived">Archived</option>
+              </select>
+            </div>
+            
+            <div className="flex space-x-3 mt-6">
+              <button 
+                onClick={() => setShowEditModal(false)}
+                className="btn-secondary flex-1"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleUpdatePatient}
+                className="btn-primary flex-1"
+              >
+                Update Patient
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Patient Modal */}
       {showAddModal && (
