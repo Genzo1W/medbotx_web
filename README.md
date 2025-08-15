@@ -1,4 +1,4 @@
-# 🏥 MediCare - Hospital Appointment Management System
+# 🏥 MedBotX - Hospital Appointment Management System
 
 A modern, secure, and user-friendly web application for managing hospital appointments, designed specifically for doctors and healthcare centers.
 
