@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { 
   X, 
   Search, 
@@ -25,15 +25,6 @@ const SearchModal = ({ isOpen, onClose }) => {
     setActiveTab,
     clearSearch 
   } = useSearch()
-
-  // Debug logging
-  useEffect(() => {
-    if (isOpen) {
-      console.log('Search modal opened')
-      console.log('Current search query:', searchQuery)
-      console.log('Current search results:', searchResults)
-    }
-  }, [isOpen, searchQuery, searchResults])
 
   if (!isOpen) return null
 
@@ -80,10 +71,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                 type="text"
                 placeholder="Search appointments, patients, doctors..."
                 value={searchQuery}
-                onChange={(e) => {
-                  console.log('Search input changed:', e.target.value) // Debug log
-                  setSearchQuery(e.target.value)
-                }}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 autoFocus
               />
@@ -104,9 +92,6 @@ const SearchModal = ({ isOpen, onClose }) => {
               <Search className="w-16 h-16 mx-auto mb-4 text-gray-300" />
               <h3 className="text-lg font-medium mb-2">Start typing to search</h3>
               <p className="text-sm">Search across appointments, patients, and doctors</p>
-              <div className="mt-4 text-xs text-gray-400">
-                <p>Try searching for: "Sarah", "cardiology", "consultation", "555-123"</p>
-              </div>
             </div>
           ) : isSearching ? (
             <div className="p-8 text-center">
@@ -116,20 +101,11 @@ const SearchModal = ({ isOpen, onClose }) => {
           ) : totalResults === 0 ? (
             <div className="p-8 text-center text-gray-500">
               <Search className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-medium mb-2">No results found for "{searchQuery}"</h3>
+              <h3 className="text-lg font-medium mb-2">No results found</h3>
               <p className="text-sm">Try adjusting your search terms</p>
-              <div className="mt-4 text-xs text-gray-400">
-                <p>Available data: Sarah Johnson, Michael Chen, Emily Davis, Cardiology, Neurology</p>
-              </div>
             </div>
           ) : (
             <div className="p-6">
-              {/* Debug info */}
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
-                <p>Debug: Found {totalResults} total results</p>
-                <p>Appointments: {searchResults.appointments.length} | Patients: {searchResults.patients.length} | Doctors: {searchResults.doctors.length}</p>
-              </div>
-
               {/* Tabs */}
               <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1">
                 <button

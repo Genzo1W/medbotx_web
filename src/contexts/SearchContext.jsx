@@ -194,8 +194,6 @@ export const SearchProvider = ({ children }) => {
   }
 
   const performSearch = useCallback((query) => {
-    console.log('Performing search for:', query) // Debug log
-    
     if (!query.trim()) {
       setSearchResults({ appointments: [], patients: [], doctors: [] })
       return
@@ -232,12 +230,6 @@ export const SearchProvider = ({ children }) => {
       doctor.specialty.toLowerCase().includes(lowerQuery) ||
       doctor.status.toLowerCase().includes(lowerQuery)
     )
-
-    console.log('Search results:', { // Debug log
-      appointments: filteredAppointments.length,
-      patients: filteredPatients.length,
-      doctors: filteredDoctors.length
-    })
 
     setSearchResults({
       appointments: filteredAppointments,
