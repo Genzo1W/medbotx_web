@@ -225,7 +225,7 @@ const Login = () => {
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Login Successful!</h2>
-            <p className="text-gray-600 mb-6">Welcome back to MediCare</p>
+            <p className="text-gray-600 mb-6">Welcome back to MedBotX</p>
             <div className="animate-pulse">
               <div className="w-8 h-8 bg-primary-600 rounded-full mx-auto"></div>
             </div>
@@ -249,7 +249,7 @@ const Login = () => {
             </h1>
             <p className="text-gray-600">
               {step === 'email' 
-                ? 'Sign in to your MediCare account' 
+                ? 'Sign in to your MedBotX account' 
                 : `We've sent a 6-digit code to ${email}`
               }
             </p>

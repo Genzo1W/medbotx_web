@@ -1,7 +1,7 @@
 {
-  "name": "hospital-appointments",
+  "name": "medbotx-web",
   "version": "1.0.0",
-  "description": "Modern appointment management system for doctors and hospitals",
+  "description": "MedBotX - Modern appointment management system for doctors and hospitals",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
@@ -34,6 +34,7 @@
     "vite": "^4.1.0"
   },
   "keywords": [
+    "medbotx",
     "hospital",
     "appointments",
     "medical",

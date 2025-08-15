@@ -47,7 +47,7 @@ const Layout = () => {
             <div className="w-8 h-8 bg-gradient-to-r from-primary-600 to-accent-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">M</span>
             </div>
-            <h1 className="ml-3 text-xl font-bold text-gradient">MediCare</h1>
+            <h1 className="ml-3 text-xl font-bold text-gradient">MedBotX</h1>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
