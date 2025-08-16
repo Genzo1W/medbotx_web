@@ -9,6 +9,7 @@ import {
   Edit,
   Trash2
 } from 'lucide-react'
+import NewAppointmentModal from '../components/NewAppointmentModal'
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -26,7 +27,7 @@ const Calendar = () => {
       {
         id: 1,
         patientName: 'Sarah Johnson',
-        time: '09:00',
+        time: '09:00 AM',
         duration: 30,
         type: 'Consultation',
         status: 'confirmed',
@@ -35,7 +36,7 @@ const Calendar = () => {
       {
         id: 2,
         patientName: 'Michael Chen',
-        time: '10:30',
+        time: '10:30 AM',
         duration: 45,
         type: 'Follow-up',
         status: 'pending',
@@ -44,7 +45,7 @@ const Calendar = () => {
       {
         id: 3,
         patientName: 'Emily Davis',
-        time: '14:00',
+        time: '02:00 PM',
         duration: 60,
         type: 'Check-up',
         status: 'confirmed',
@@ -53,7 +54,7 @@ const Calendar = () => {
       {
         id: 4,
         patientName: 'Robert Wilson',
-        time: '11:15',
+        time: '11:15 AM',
         duration: 30,
         type: 'Emergency',
         status: 'confirmed',
@@ -62,7 +63,7 @@ const Calendar = () => {
       {
         id: 5,
         patientName: 'Lisa Brown',
-        time: '16:30',
+        time: '04:30 PM',
         duration: 45,
         type: 'Consultation',
         status: 'pending',
@@ -71,7 +72,7 @@ const Calendar = () => {
       {
         id: 6,
         patientName: 'David Thompson',
-        time: '08:45',
+        time: '08:45 AM',
         duration: 30,
         type: 'Follow-up',
         status: 'completed',
@@ -80,7 +81,7 @@ const Calendar = () => {
       {
         id: 7,
         patientName: 'Maria Garcia',
-        time: '13:20',
+        time: '01:20 PM',
         duration: 60,
         type: 'Check-up',
         status: 'confirmed',
@@ -89,7 +90,7 @@ const Calendar = () => {
       {
         id: 8,
         patientName: 'James Miller',
-        time: '15:45',
+        time: '03:45 PM',
         duration: 30,
         type: 'Consultation',
         status: 'pending',
@@ -98,6 +99,11 @@ const Calendar = () => {
     ]
     setAppointments(mockAppointments)
   }, [])
+
+  // Handler for saving new appointments
+  const handleSaveAppointment = (newAppointment) => {
+    setAppointments(prev => [...prev, newAppointment])
+  }
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear()
@@ -371,63 +377,14 @@ const Calendar = () => {
         </div>
       </div>
 
-      {/* Add Appointment Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">New Appointment</h3>
-            <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="Patient Name"
-                className="input-field"
-              />
-              <input
-                type="email"
-                placeholder="Patient Email"
-                className="input-field"
-              />
-              <input
-                type="tel"
-                placeholder="Patient Phone"
-                className="input-field"
-              />
-              <input
-                type="date"
-                className="input-field"
-                defaultValue={selectedDate.toISOString().split('T')[0]}
-              />
-              <input
-                type="time"
-                className="input-field"
-              />
-              <select className="input-field">
-                <option>Select Type</option>
-                <option>Consultation</option>
-                <option>Follow-up</option>
-                <option>Check-up</option>
-                <option>Emergency</option>
-              </select>
-              <textarea
-                placeholder="Notes"
-                rows="3"
-                className="input-field"
-              />
-            </div>
-            <div className="flex space-x-3 mt-6">
-              <button 
-                onClick={() => setShowAddModal(false)}
-                className="btn-secondary flex-1"
-              >
-                Cancel
-              </button>
-              <button className="btn-primary flex-1">
-                Create
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Reusable New Appointment Modal */}
+      <NewAppointmentModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleSaveAppointment}
+        selectedDate={selectedDate}
+        appointments={appointments}
+      />
     </div>
   )
 }

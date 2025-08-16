@@ -13,7 +13,9 @@ import {
   Eye,
   X,
   Calendar,
-  Award
+  Award,
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react'
 
 const Doctors = () => {
@@ -25,6 +27,309 @@ const Doctors = () => {
   const [showEditModal, setShowEditModal] = useState(false)
   const [selectedDoctor, setSelectedDoctor] = useState(null)
   const [editForm, setEditForm] = useState({})
+
+  // Advanced filters state
+  const [showFilterModal, setShowFilterModal] = useState(false)
+  const [advancedFilters, setAdvancedFilters] = useState({
+    specialty: 'all',
+    status: 'all',
+    experience: 'all',
+    rating: 'all'
+  })
+
+  // Form state for new doctor
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    specialty: '',
+    experience: '',
+    education: '',
+    certifications: '',
+    address: ''
+  })
+
+  // Validation errors and real-time validation
+  const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [fieldTouched, setFieldTouched] = useState({})
+  const [realTimeValidation, setRealTimeValidation] = useState({})
+
+  // Validation functions
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  const validatePhone = (phone) => {
+    // Accepts various phone formats: +1 (555) 123-4567, (555) 123-4567, 555-123-4567, 5551234567
+    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$|^[\+]?[\(]?[1-9][\d]{2}[\)]?[\s-]?[\d]{3}[\s-]?[\d]{4}$/
+    return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''))
+  }
+
+  // Real-time validation functions
+  const validateFieldRealTime = (field, value) => {
+    let isValid = true
+    let message = ''
+
+    switch (field) {
+      case 'name':
+        if (value.trim().length === 0) {
+          isValid = false
+          message = 'Doctor name is required'
+        } else if (value.trim().length < 2) {
+          isValid = false
+          message = 'Name must be at least 2 characters'
+        }
+        break
+
+      case 'email':
+        if (value.trim().length === 0) {
+          isValid = false
+          message = 'Email is required'
+        } else if (!validateEmail(value)) {
+          isValid = false
+          message = 'Please enter a valid email address'
+        }
+        break
+
+      case 'phone':
+        if (value.trim().length === 0) {
+          isValid = false
+          message = 'Phone number is required'
+        } else if (!validatePhone(value)) {
+          isValid = false
+          message = 'Please enter a valid phone number'
+        }
+        break
+
+      case 'specialty':
+        if (!value) {
+          isValid = false
+          message = 'Specialty is required'
+        }
+        break
+
+      case 'experience':
+        if (value.trim().length === 0) {
+          isValid = false
+          message = 'Experience is required'
+        }
+        break
+
+      case 'education':
+        if (value.trim().length === 0) {
+          isValid = false
+          message = 'Education is required'
+        }
+        break
+
+      case 'certifications':
+        if (value.trim().length === 0) {
+          isValid = false
+          message = 'Certifications are required'
+        }
+        break
+
+      case 'address':
+        if (value.trim().length === 0) {
+          isValid = false
+          message = 'Address is required'
+        }
+        break
+
+      default:
+        break
+    }
+
+    return { isValid, message }
+  }
+
+  // Phone number formatting
+  const formatPhoneNumber = (value) => {
+    // Remove all non-digit characters except +, (, ), -, and space
+    const cleaned = value.replace(/[^\d+\-\(\)\s]/g, '')
+    
+    // Limit length to prevent overly long numbers
+    if (cleaned.length > 20) {
+      return value.slice(0, 20)
+    }
+    
+    return cleaned
+  }
+
+  const validateForm = () => {
+    const newErrors = {}
+
+    // Required field validation
+    if (!formData.name.trim()) {
+      newErrors.name = 'Doctor name is required'
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required'
+    } else if (!validateEmail(formData.email)) {
+      newErrors.email = 'Please enter a valid email address'
+    }
+
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required'
+    } else if (!validatePhone(formData.phone)) {
+      newErrors.phone = 'Please enter a valid phone number'
+    }
+
+    if (!formData.specialty) {
+      newErrors.specialty = 'Specialty is required'
+    }
+
+    if (!formData.experience.trim()) {
+      newErrors.experience = 'Experience is required'
+    }
+
+    if (!formData.education.trim()) {
+      newErrors.education = 'Education is required'
+    }
+
+    if (!formData.certifications.trim()) {
+      newErrors.certifications = 'Certifications are required'
+    }
+
+    if (!formData.address.trim()) {
+      newErrors.address = 'Address is required'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleInputChange = (field, value) => {
+    let processedValue = value
+
+    // Special handling for phone field
+    if (field === 'phone') {
+      processedValue = formatPhoneNumber(value)
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      [field]: processedValue
+    }))
+    
+    // Mark field as touched
+    setFieldTouched(prev => ({
+      ...prev,
+      [field]: true
+    }))
+
+    // Real-time validation
+    if (fieldTouched[field] || processedValue.length > 0) {
+      const validation = validateFieldRealTime(field, processedValue)
+      setRealTimeValidation(prev => ({
+        ...prev,
+        [field]: validation
+      }))
+    }
+    
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }))
+    }
+  }
+
+  const handleFieldBlur = (field) => {
+    setFieldTouched(prev => ({
+      ...prev,
+      [field]: true
+    }))
+
+    const validation = validateFieldRealTime(field, formData[field])
+    setRealTimeValidation(prev => ({
+      ...prev,
+      [field]: validation
+    }))
+  }
+
+  const handleSubmit = () => {
+    if (validateForm()) {
+      setIsSubmitting(true)
+      
+      // Simulate API call
+      setTimeout(() => {
+        const newDoctor = {
+          id: doctors.length + 1,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          specialty: formData.specialty,
+          experience: formData.experience,
+          education: formData.education,
+          certifications: formData.certifications,
+          address: formData.address,
+          rating: 0,
+          patientsSeen: 0,
+          availability: 'Mon-Fri, 9AM-5PM',
+          status: 'active'
+        }
+        
+        setDoctors(prev => [...prev, newDoctor])
+        setShowAddModal(false)
+        resetForm()
+        setIsSubmitting(false)
+      }, 1000)
+    }
+  }
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      specialty: '',
+      experience: '',
+      education: '',
+      certifications: '',
+      address: ''
+    })
+    setErrors({})
+    setFieldTouched({})
+    setRealTimeValidation({})
+    setIsSubmitting(false)
+  }
+
+  const handleCloseModal = () => {
+    setShowAddModal(false)
+    resetForm()
+  }
+
+  // Helper function to get field status
+  const getFieldStatus = (field) => {
+    const isTouched = fieldTouched[field]
+    const hasValue = formData[field] && formData[field].trim().length > 0
+    const validation = realTimeValidation[field]
+    
+    if (!isTouched && !hasValue) return 'default'
+    if (validation && !validation.isValid) return 'error'
+    if (validation && validation.isValid) return 'success'
+    return 'default'
+  }
+
+  // Helper function to get field styling
+  const getFieldClassName = (field) => {
+    const status = getFieldStatus(field)
+    const baseClass = 'input-field'
+    
+    switch (status) {
+      case 'error':
+        return `${baseClass} border-red-500 focus:border-red-500 focus:ring-red-500`
+      case 'success':
+        return `${baseClass} border-green-500 focus:border-green-500 focus:ring-green-500`
+      default:
+        return baseClass
+    }
+  }
 
   useEffect(() => {
     // Simulate data loading
@@ -95,13 +400,51 @@ const Doctors = () => {
   }, [])
 
   useEffect(() => {
-    const filtered = doctors.filter(doctor => 
-      doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doctor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    const filtered = doctors.filter(doctor => {
+      const matchesSearch = doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           doctor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase())
+      
+      // Advanced filters
+      const matchesSpecialty = advancedFilters.specialty === 'all' || doctor.specialty === advancedFilters.specialty
+      const matchesStatus = advancedFilters.status === 'all' || doctor.status === advancedFilters.status
+      const matchesExperience = advancedFilters.experience === 'all' || 
+                               (advancedFilters.experience === '0-5' && parseInt(doctor.experience) <= 5) ||
+                               (advancedFilters.experience === '6-10' && parseInt(doctor.experience) >= 6 && parseInt(doctor.experience) <= 10) ||
+                               (advancedFilters.experience === '11-15' && parseInt(doctor.experience) >= 11 && parseInt(doctor.experience) <= 15) ||
+                               (advancedFilters.experience === '16+' && parseInt(doctor.experience) >= 16)
+      const matchesRating = advancedFilters.rating === 'all' || 
+                           (advancedFilters.rating === '4.5+' && doctor.rating >= 4.5) ||
+                           (advancedFilters.rating === '4.0-4.4' && doctor.rating >= 4.0 && doctor.rating < 4.5) ||
+                           (advancedFilters.rating === '3.5-3.9' && doctor.rating >= 3.5 && doctor.rating < 4.0) ||
+                           (advancedFilters.rating === '<3.5' && doctor.rating < 3.5)
+      
+      return matchesSearch && matchesSpecialty && matchesStatus && matchesExperience && matchesRating
+    })
     setFilteredDoctors(filtered)
-  }, [searchTerm, doctors])
+  }, [searchTerm, doctors, advancedFilters])
+
+  // Filter handlers
+  const handleAdvancedFilterChange = (field, value) => {
+    setAdvancedFilters(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const clearAllFilters = () => {
+    setAdvancedFilters({
+      specialty: 'all',
+      status: 'all',
+      experience: 'all',
+      rating: 'all'
+    })
+    setSearchTerm('')
+  }
+
+  const applyFilters = () => {
+    setShowFilterModal(false)
+  }
 
   const getSpecialtyColor = (specialty) => {
     const colors = {
@@ -149,7 +492,7 @@ const Doctors = () => {
     }
   }
 
-  const handleInputChange = (field, value) => {
+  const handleEditInputChange = (field, value) => {
     setEditForm(prev => ({
       ...prev,
       [field]: value
@@ -188,7 +531,10 @@ const Doctors = () => {
               />
             </div>
           </div>
-          <button className="btn-secondary flex items-center space-x-2">
+          <button 
+            onClick={() => setShowFilterModal(true)}
+            className="btn-secondary flex items-center space-x-2"
+          >
             <Filter className="w-4 h-4" />
             <span>Filters</span>
           </button>
@@ -413,26 +759,26 @@ const Doctors = () => {
                 type="text"
                 placeholder="Full Name"
                 value={editForm.name || ''}
-                onChange={(e) => handleInputChange('name', e.target.value)}
+                onChange={(e) => handleEditInputChange('name', e.target.value)}
                 className="input-field"
               />
               <input
                 type="email"
                 placeholder="Email Address"
                 value={editForm.email || ''}
-                onChange={(e) => handleInputChange('email', e.target.value)}
+                onChange={(e) => handleEditInputChange('email', e.target.value)}
                 className="input-field"
               />
               <input
                 type="tel"
                 placeholder="Phone Number"
                 value={editForm.phone || ''}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
+                onChange={(e) => handleEditInputChange('phone', e.target.value)}
                 className="input-field"
               />
               <select 
                 value={editForm.specialty || ''}
-                onChange={(e) => handleInputChange('specialty', e.target.value)}
+                onChange={(e) => handleEditInputChange('specialty', e.target.value)}
                 className="input-field"
               >
                 <option value="">Select Specialty</option>
@@ -446,7 +792,7 @@ const Doctors = () => {
                 type="text"
                 placeholder="Experience (e.g., 10 years)"
                 value={editForm.experience || ''}
-                onChange={(e) => handleInputChange('experience', e.target.value)}
+                onChange={(e) => handleEditInputChange('experience', e.target.value)}
                 className="input-field"
               />
               <input
@@ -456,47 +802,47 @@ const Doctors = () => {
                 max="5"
                 placeholder="Rating (0-5)"
                 value={editForm.rating || ''}
-                onChange={(e) => handleInputChange('rating', e.target.value)}
+                onChange={(e) => handleEditInputChange('rating', e.target.value)}
                 className="input-field"
               />
               <input
                 type="number"
                 placeholder="Patients Seen"
                 value={editForm.patientsSeen || ''}
-                onChange={(e) => handleInputChange('patientsSeen', e.target.value)}
+                onChange={(e) => handleEditInputChange('patientsSeen', e.target.value)}
                 className="input-field"
               />
               <input
                 type="text"
                 placeholder="Availability (e.g., Mon-Fri, 9AM-5PM)"
                 value={editForm.availability || ''}
-                onChange={(e) => handleInputChange('availability', e.target.value)}
+                onChange={(e) => handleEditInputChange('availability', e.target.value)}
                 className="input-field"
               />
               <textarea
                 placeholder="Education"
                 rows="2"
                 value={editForm.education || ''}
-                onChange={(e) => handleInputChange('education', e.target.value)}
+                onChange={(e) => handleEditInputChange('education', e.target.value)}
                 className="input-field"
               />
               <textarea
                 placeholder="Certifications"
                 rows="2"
                 value={editForm.certifications || ''}
-                onChange={(e) => handleInputChange('certifications', e.target.value)}
+                onChange={(e) => handleEditInputChange('certifications', e.target.value)}
                 className="input-field"
               />
               <textarea
                 placeholder="Address"
                 rows="2"
                 value={editForm.address || ''}
-                onChange={(e) => handleInputChange('address', e.target.value)}
+                onChange={(e) => handleEditInputChange('address', e.target.value)}
                 className="input-field"
               />
               <select 
                 value={editForm.status || ''}
-                onChange={(e) => handleInputChange('status', e.target.value)}
+                onChange={(e) => handleEditInputChange('status', e.target.value)}
                 className="input-field"
               >
                 <option value="">Select Status</option>
@@ -530,59 +876,308 @@ const Doctors = () => {
           <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New Doctor</h3>
             <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="Full Name"
-                className="input-field"
-              />
-              <input
-                type="email"
-                placeholder="Email Address"
-                className="input-field"
-              />
-              <input
-                type="tel"
-                placeholder="Phone Number"
-                className="input-field"
-              />
-              <select className="input-field">
-                <option>Select Specialty</option>
-                <option>Cardiology</option>
-                <option>Neurology</option>
-                <option>Pediatrics</option>
-                <option>Orthopedics</option>
-                <option>Psychiatry</option>
-              </select>
-              <input
-                type="text"
-                placeholder="Experience (e.g., 10 years)"
-                className="input-field"
-              />
-              <textarea
-                placeholder="Education"
-                rows="2"
-                className="input-field"
-              />
-              <textarea
-                placeholder="Certifications"
-                rows="2"
-                className="input-field"
-              />
-              <textarea
-                placeholder="Address"
-                rows="2"
-                className="input-field"
-              />
+              {/* Doctor Name */}
+              <div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Full Name *"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    onBlur={() => handleFieldBlur('name')}
+                    className={getFieldClassName('name')}
+                  />
+                  {getFieldStatus('name') === 'success' && (
+                    <CheckCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-500" />
+                  )}
+                </div>
+                {(realTimeValidation.name && !realTimeValidation.name.isValid) && (
+                  <div className="flex items-center space-x-1 mt-1 text-red-600 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{realTimeValidation.name.message}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Email */}
+              <div>
+                <div className="relative">
+                  <input
+                    type="email"
+                    placeholder="Email Address *"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    onBlur={() => handleFieldBlur('email')}
+                    className={getFieldClassName('email')}
+                  />
+                  {getFieldStatus('email') === 'success' && (
+                    <CheckCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-500" />
+                  )}
+                </div>
+                {(realTimeValidation.email && !realTimeValidation.email.isValid) && (
+                  <div className="flex items-center space-x-1 mt-1 text-red-600 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{realTimeValidation.email.message}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Phone */}
+              <div>
+                <div className="relative">
+                  <input
+                    type="tel"
+                    placeholder="Phone Number *"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    onBlur={() => handleFieldBlur('phone')}
+                    className={getFieldClassName('phone')}
+                  />
+                  {getFieldStatus('phone') === 'success' && (
+                    <CheckCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-500" />
+                  )}
+                </div>
+                {(realTimeValidation.phone && !realTimeValidation.phone.isValid) && (
+                  <div className="flex items-center space-x-1 mt-1 text-red-600 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{realTimeValidation.phone.message}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Specialty */}
+              <div>
+                <div className="relative">
+                  <select 
+                    value={formData.specialty}
+                    onChange={(e) => handleInputChange('specialty', e.target.value)}
+                    onBlur={() => handleFieldBlur('specialty')}
+                    className={getFieldClassName('specialty')}
+                  >
+                    <option value="">Select Specialty *</option>
+                    <option value="Cardiology">Cardiology</option>
+                    <option value="Neurology">Neurology</option>
+                    <option value="Pediatrics">Pediatrics</option>
+                    <option value="Orthopedics">Orthopedics</option>
+                    <option value="Psychiatry">Psychiatry</option>
+                  </select>
+                  {getFieldStatus('specialty') === 'success' && (
+                    <CheckCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-500 pointer-events-none" />
+                  )}
+                </div>
+                {(realTimeValidation.specialty && !realTimeValidation.specialty.isValid) && (
+                  <div className="flex items-center space-x-1 mt-1 text-red-600 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{realTimeValidation.specialty.message}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Experience */}
+              <div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Experience (e.g., 10 years) *"
+                    value={formData.experience}
+                    onChange={(e) => handleInputChange('experience', e.target.value)}
+                    onBlur={() => handleFieldBlur('experience')}
+                    className={getFieldClassName('experience')}
+                  />
+                  {getFieldStatus('experience') === 'success' && (
+                    <CheckCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-500" />
+                  )}
+                </div>
+                {(realTimeValidation.experience && !realTimeValidation.experience.isValid) && (
+                  <div className="flex items-center space-x-1 mt-1 text-red-600 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{realTimeValidation.experience.message}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Education */}
+              <div>
+                <div className="relative">
+                  <textarea
+                    placeholder="Education *"
+                    rows="2"
+                    value={formData.education}
+                    onChange={(e) => handleInputChange('education', e.target.value)}
+                    onBlur={() => handleFieldBlur('education')}
+                    className={getFieldClassName('education')}
+                  />
+                  {getFieldStatus('education') === 'success' && (
+                    <CheckCircle className="absolute right-3 top-3 w-5 h-5 text-green-500" />
+                  )}
+                </div>
+                {(realTimeValidation.education && !realTimeValidation.education.isValid) && (
+                  <div className="flex items-center space-x-1 mt-1 text-red-600 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{realTimeValidation.education.message}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Certifications */}
+              <div>
+                <div className="relative">
+                  <textarea
+                    placeholder="Certifications *"
+                    rows="2"
+                    value={formData.certifications}
+                    onChange={(e) => handleInputChange('certifications', e.target.value)}
+                    onBlur={() => handleFieldBlur('certifications')}
+                    className={getFieldClassName('certifications')}
+                  />
+                  {getFieldStatus('certifications') === 'success' && (
+                    <CheckCircle className="absolute right-3 top-3 w-5 h-5 text-green-500" />
+                  )}
+                </div>
+                {(realTimeValidation.certifications && !realTimeValidation.certifications.isValid) && (
+                  <div className="flex items-center space-x-1 mt-1 text-red-600 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{realTimeValidation.certifications.message}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Address */}
+              <div>
+                <div className="relative">
+                  <textarea
+                    placeholder="Address *"
+                    rows="2"
+                    value={formData.address}
+                    onChange={(e) => handleInputChange('address', e.target.value)}
+                    onBlur={() => handleFieldBlur('address')}
+                    className={getFieldClassName('address')}
+                  />
+                  {getFieldStatus('address') === 'success' && (
+                    <CheckCircle className="absolute right-3 top-3 w-5 h-5 text-green-500" />
+                  )}
+                </div>
+                {(realTimeValidation.address && !realTimeValidation.address.isValid) && (
+                  <div className="flex items-center space-x-1 mt-1 text-red-600 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{realTimeValidation.address.message}</span>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex space-x-3 mt-6">
               <button 
-                onClick={() => setShowAddModal(false)}
+                onClick={handleCloseModal}
                 className="btn-secondary flex-1"
               >
                 Cancel
               </button>
-              <button className="btn-primary flex-1">
-                Add Doctor
+              <button 
+                onClick={handleSubmit}
+                className="btn-primary flex-1"
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center space-x-2">
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Adding...</span>
+                  </div>
+                ) : (
+                  'Add Doctor'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Advanced Filters Modal */}
+      {showFilterModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Advanced Filters</h3>
+              <button 
+                onClick={() => setShowFilterModal(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Specialty</label>
+                <select 
+                  value={advancedFilters.specialty}
+                  onChange={(e) => handleAdvancedFilterChange('specialty', e.target.value)}
+                  className="input-field"
+                >
+                  <option value="all">All Specialties</option>
+                  <option value="Cardiology">Cardiology</option>
+                  <option value="Neurology">Neurology</option>
+                  <option value="Pediatrics">Pediatrics</option>
+                  <option value="Orthopedics">Orthopedics</option>
+                  <option value="Psychiatry">Psychiatry</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Status</label>
+                <select 
+                  value={advancedFilters.status}
+                  onChange={(e) => handleAdvancedFilterChange('status', e.target.value)}
+                  className="input-field"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="on leave">On Leave</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Experience</label>
+                <select 
+                  value={advancedFilters.experience}
+                  onChange={(e) => handleAdvancedFilterChange('experience', e.target.value)}
+                  className="input-field"
+                >
+                  <option value="all">All Experience</option>
+                  <option value="0-5">0-5 Years</option>
+                  <option value="6-10">6-10 Years</option>
+                  <option value="11-15">11-15 Years</option>
+                  <option value="16+">16+ Years</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Rating</label>
+                <select 
+                  value={advancedFilters.rating}
+                  onChange={(e) => handleAdvancedFilterChange('rating', e.target.value)}
+                  className="input-field"
+                >
+                  <option value="all">All Ratings</option>
+                  <option value="4.5+">4.5+</option>
+                  <option value="4.0-4.4">4.0-4.4</option>
+                  <option value="3.5-3.9">3.5-3.9</option>
+                  <option value="<3.5">Less than 3.5</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button 
+                onClick={clearAllFilters}
+                className="btn-secondary"
+              >
+                Clear All
+              </button>
+              <button 
+                onClick={applyFilters}
+                className="btn-primary"
+              >
+                Apply Filters
               </button>
             </div>
           </div>
