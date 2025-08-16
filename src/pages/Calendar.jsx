@@ -9,6 +9,7 @@ import {
   Edit,
   Trash2
 } from 'lucide-react'
+import NewAppointmentModal from '../components/NewAppointmentModal'
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -17,29 +18,92 @@ const Calendar = () => {
   const [showAddModal, setShowAddModal] = useState(false)
 
   useEffect(() => {
-    // Simulate data loading
+    // Generate mock appointments for current month and next month
+    const today = new Date()
+    const currentYear = today.getFullYear()
+    const currentMonth = today.getMonth()
+    
     const mockAppointments = [
       {
         id: 1,
         patientName: 'Sarah Johnson',
-        time: '09:00',
+        time: '09:00 AM',
         duration: 30,
         type: 'Consultation',
         status: 'confirmed',
-        date: '2024-01-15'
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
       },
       {
         id: 2,
         patientName: 'Michael Chen',
-        time: '10:30',
+        time: '10:30 AM',
         duration: 45,
         type: 'Follow-up',
         status: 'pending',
-        date: '2024-01-15'
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(today.getDate() + 1).padStart(2, '0')}`
+      },
+      {
+        id: 3,
+        patientName: 'Emily Davis',
+        time: '02:00 PM',
+        duration: 60,
+        type: 'Check-up',
+        status: 'confirmed',
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(today.getDate() + 2).padStart(2, '0')}`
+      },
+      {
+        id: 4,
+        patientName: 'Robert Wilson',
+        time: '11:15 AM',
+        duration: 30,
+        type: 'Emergency',
+        status: 'confirmed',
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(today.getDate() + 3).padStart(2, '0')}`
+      },
+      {
+        id: 5,
+        patientName: 'Lisa Brown',
+        time: '04:30 PM',
+        duration: 45,
+        type: 'Consultation',
+        status: 'pending',
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(today.getDate() + 5).padStart(2, '0')}`
+      },
+      {
+        id: 6,
+        patientName: 'David Thompson',
+        time: '08:45 AM',
+        duration: 30,
+        type: 'Follow-up',
+        status: 'completed',
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(today.getDate() - 1).padStart(2, '0')}`
+      },
+      {
+        id: 7,
+        patientName: 'Maria Garcia',
+        time: '01:20 PM',
+        duration: 60,
+        type: 'Check-up',
+        status: 'confirmed',
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(today.getDate() + 7).padStart(2, '0')}`
+      },
+      {
+        id: 8,
+        patientName: 'James Miller',
+        time: '03:45 PM',
+        duration: 30,
+        type: 'Consultation',
+        status: 'pending',
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(today.getDate() + 10).padStart(2, '0')}`
       }
     ]
     setAppointments(mockAppointments)
   }, [])
+
+  // Handler for saving new appointments
+  const handleSaveAppointment = (newAppointment) => {
+    setAppointments(prev => [...prev, newAppointment])
+  }
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear()
@@ -72,7 +136,7 @@ const Calendar = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'confirmed': return 'bg-medical-100 text-medical-800'
+      case 'confirmed': return 'bg-green-100 text-green-800'
       case 'pending': return 'bg-yellow-100 text-yellow-800'
       case 'completed': return 'bg-blue-100 text-blue-800'
       case 'cancelled': return 'bg-red-100 text-red-800'
@@ -98,6 +162,7 @@ const Calendar = () => {
   }
 
   const isToday = (date) => {
+    if (!date) return false
     const today = new Date()
     return date.getDate() === today.getDate() &&
            date.getMonth() === today.getMonth() &&
@@ -105,8 +170,8 @@ const Calendar = () => {
   }
 
   const isSelected = (date) => {
-    return date && selectedDate &&
-           date.getDate() === selectedDate.getDate() &&
+    if (!date || !selectedDate) return false
+    return date.getDate() === selectedDate.getDate() &&
            date.getMonth() === selectedDate.getMonth() &&
            date.getFullYear() === selectedDate.getFullYear()
   }
@@ -156,7 +221,11 @@ const Calendar = () => {
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <button
-                  onClick={() => setCurrentDate(new Date())}
+                  onClick={() => {
+                    const today = new Date()
+                    setCurrentDate(today)
+                    setSelectedDate(today)
+                  }}
                   className="btn-secondary text-sm"
                 >
                   Today
@@ -297,67 +366,25 @@ const Calendar = () => {
                   {appointments.filter(apt => apt.status === 'pending').length}
                 </span>
               </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Confirmed</span>
+                <span className="font-semibold text-green-600">
+                  {appointments.filter(apt => apt.status === 'confirmed').length}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Add Appointment Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">New Appointment</h3>
-            <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="Patient Name"
-                className="input-field"
-              />
-              <input
-                type="email"
-                placeholder="Patient Email"
-                className="input-field"
-              />
-              <input
-                type="tel"
-                placeholder="Patient Phone"
-                className="input-field"
-              />
-              <input
-                type="date"
-                className="input-field"
-              />
-              <input
-                type="time"
-                className="input-field"
-              />
-              <select className="input-field">
-                <option>Select Type</option>
-                <option>Consultation</option>
-                <option>Follow-up</option>
-                <option>Check-up</option>
-                <option>Emergency</option>
-              </select>
-              <textarea
-                placeholder="Notes"
-                rows="3"
-                className="input-field"
-              />
-            </div>
-            <div className="flex space-x-3 mt-6">
-              <button 
-                onClick={() => setShowAddModal(false)}
-                className="btn-secondary flex-1"
-              >
-                Cancel
-              </button>
-              <button className="btn-primary flex-1">
-                Create
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Reusable New Appointment Modal */}
+      <NewAppointmentModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleSaveAppointment}
+        selectedDate={selectedDate}
+        appointments={appointments}
+      />
     </div>
   )
 }
